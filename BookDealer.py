@@ -1,6 +1,8 @@
 #! python 3
 
-# a script to compare book prices between Flipkart.com and Amazon.in
+# a script to compare book prices between Flipkart.com and Amazon.in and display book rating from Goodreads.com
+# requires bs4 pip install beautifulsoup4
+
 
 
 #imports
@@ -14,6 +16,16 @@ numberRegEx = re.compile(r'(\d)+')
 headers = {
     'User-Agent': 'Argus v0.1'
 }
+
+#function for finding goodreads rating
+def goodreadsRating(isbn):
+    link='http://www.goodreads.com/search?utf8=%E2%9C%93&query='+isbn
+    req = requests.get(link, headers = headers)
+    req.raise_for_status()
+    soup = bs4.BeautifulSoup(req.text, 'html.parser')
+    ratingEle = soup.select('#bookMeta > span.value.rating > span.average')
+    return(ratingEle[0].text)
+    
 
 #functions for finding isbn
 def amazonISBN(link):
@@ -59,6 +71,7 @@ def flipkartLink(isbn):
 #driver logic
 link1=''
 link2=''
+isbnfromlink=''
 if len(sys.argv) == 1:
     print ('Enter the link (Flipkart/Amazon): ')
     myLink = input().upper()
@@ -95,12 +108,16 @@ try:
         perc = (price_diff/amazonPrice) * 100
         print('\nThe price differnce is Rs.'+str(price_diff))
         print('\nYou can save '+str(floor(perc))+'% if you order from Amazon.in')
+        print('Getting Goodreads rating. Wait..')
+        print('\nRating of Book on Goodreads: '+goodreadsRating(isbnfromlink))
     else:
         print('\nFlipkart seems to be giving you a better deal. Go to:'+link1)
         price_diff = (amazonPrice - flipkartPrice)
         perc = (price_diff/flipkartPrice) * 100
         print('\nThe price differnce is Rs.'+str(price_diff))
         print('\nYou can save '+str(floor(perc))+'% if you order from Flipkart')
+        print('Getting Goodreads rating. Wait..')
+        print('\nRating of Book on Goodreads: '+roodreadsRating(isbnfromlink))    
 except:
     print('\n\n***Error While Parsing. Quitting.***')
 
